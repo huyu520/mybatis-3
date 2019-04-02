@@ -39,6 +39,7 @@
         </environment>
     </environments>
 
+    <!--扫描mapper文件-->
     <mappers>
         <mapper resource="org/apache/ibatis/autoconstructor/AutoConstructorMapper.xml"/>
     </mappers>
