@@ -58,12 +58,14 @@ public class DefaultVFS extends VFS {
 
       // First, try to find the URL of a JAR file containing the requested resource. If a JAR
       // file is found, then we'll list child resources by reading the JAR.
+      // 如果 url 指向的是 Jar Resource ，则返回该 Jar Resource ，否则返回 null
       URL jarUrl = findJarForResource(url);
       if (jarUrl != null) {
         is = jarUrl.openStream();
         if (log.isDebugEnabled()) {
           log.debug("Listing " + url);
         }
+        // 遍历 Jar Resource
         resources = listResources(new JarInputStream(is), path);
       }
       else {
@@ -177,6 +179,7 @@ public class DefaultVFS extends VFS {
    */
   protected List<String> listResources(JarInputStream jar, String path) throws IOException {
     // Include the leading and trailing slash when matching names
+    // 保证头尾都是 /
     if (!path.startsWith("/")) {
       path = "/" + path;
     }
@@ -325,6 +328,7 @@ public class DefaultVFS extends VFS {
     try {
       is = url.openStream();
       is.read(buffer, 0, JAR_MAGIC.length);
+      // 判断文件头的 magic number 是否符合 JAR
       if (Arrays.equals(buffer, JAR_MAGIC)) {
         if (log.isDebugEnabled()) {
           log.debug("Found JAR: " + url);
