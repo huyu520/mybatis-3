@@ -27,6 +27,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 /**
  * Statement proxy to add logging.
  *
+ *
+ * ，也是基于 JDK 实现动态代理
  * @author Clinton Begin
  * @author Eduardo Macarron
  *
