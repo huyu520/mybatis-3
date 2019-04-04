@@ -57,7 +57,8 @@ public class EnumTypeHandler<E extends Enum<E>> extends BaseTypeHandler<E> {
 
   @Override
   public E getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-    String s = cs.getString(columnIndex);
+    // 获得 String 的值
+    String s = cs.getString(columnIndex);        // 将 String 转换成 Enum 类型
     return s == null ? null : Enum.valueOf(type, s);
   }
 }
