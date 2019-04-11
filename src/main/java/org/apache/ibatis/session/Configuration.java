@@ -752,7 +752,8 @@ public class Configuration {
   }
 
   public void addMappers(String packageName) {
-    mapperRegistry.addMappers(packageName);
+      // 扫描该包下所有的 Mapper 接口，并添加到 mapperRegistry 中
+      mapperRegistry.addMappers(packageName);
   }
 
   public <T> void addMapper(Class<T> type) {
