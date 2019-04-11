@@ -99,6 +99,7 @@ public class MapperRegistry {
   }
 
   /**
+   * 扫描指定包，并将符合的类
    * @since 3.2.2
    */
   public void addMappers(String packageName) {
