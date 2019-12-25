@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2017 the original author or authors.
+ *    Copyright 2009-2019 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,6 +32,15 @@ public class AnnotatedSubject {
     this.weight = weight;
   }
 
+
+  /**
+   * 表示 MyBatis 查询后，在创建 AnnotatedSubject 对象，使用该构造方法。
+   * @param id
+   * @param name
+   * @param age
+   * @param height
+   * @param weight
+   */
   @AutomapConstructor
   public AnnotatedSubject(final int id, final String name, final int age, final Integer height, final Integer weight) {
     this.id = id;
