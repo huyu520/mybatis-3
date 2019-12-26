@@ -38,8 +38,8 @@ public class ErrorContext {
     ErrorContext context = LOCAL.get();
     if (context == null) {
       context = new ErrorContext();
-      LOCAL.set(context);
     }
+    LOCAL.set(context);
     return context;
   }
 
