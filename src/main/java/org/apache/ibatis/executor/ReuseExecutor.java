@@ -34,6 +34,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 继承 BaseExecutor 抽象类，可重用的 Executor 实现类
  * @author Clinton Begin
  */
 public class ReuseExecutor extends BaseExecutor {
@@ -68,6 +69,12 @@ public class ReuseExecutor extends BaseExecutor {
     return handler.queryCursor(stmt);
   }
 
+
+  /**
+   * 在提交或者回滚事务方法中，最终也会调用该方法，也能完成关闭缓存的 Statement 对象们。
+   * @param isRollback
+   * @return
+   */
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
     for (Statement stmt : statementMap.values()) {

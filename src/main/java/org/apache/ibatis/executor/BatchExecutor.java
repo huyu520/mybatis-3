@@ -44,6 +44,7 @@ public class BatchExecutor extends BaseExecutor {
 
   private final List<Statement> statementList = new ArrayList<>();
   private final List<BatchResult> batchResultList = new ArrayList<>();
+  // * 当前 SQL
   private String currentSql;
   private MappedStatement currentStatement;
 

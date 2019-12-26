@@ -262,9 +262,16 @@ public class XMLConfigBuilder extends BaseBuilder {
         }
     }
 
+    /**
+     * ，解析 <properties /> 节点
+     * @param context
+     * @throws Exception
+     */
     private void propertiesElement(XNode context) throws Exception {
         if (context != null) {
+            // 读取子标签们，为 Properties 对象
             Properties defaults = context.getChildrenAsProperties();
+            // 读取 resource 和 url 属性
             String resource = context.getStringAttribute("resource");
             String url = context.getStringAttribute("url");
             if (resource != null && url != null) {

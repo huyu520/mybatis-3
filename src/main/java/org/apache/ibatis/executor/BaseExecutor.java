@@ -52,13 +52,28 @@ public abstract class BaseExecutor implements Executor {
   private static final Log log = LogFactory.getLog(BaseExecutor.class);
 
   protected Transaction transaction;
+  /**
+   * 包装的 Executor 对象
+   */
   protected Executor wrapper;
 
+  /**
+   * DeferredLoad( 延迟加载 ) 队列
+   */
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+  /**
+   * 本地缓存，即一级缓存
+   */
   protected PerpetualCache localCache;
+  /**
+   * 本地输出类型的参数的缓存
+   */
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
 
+  /**
+   * 记录嵌套查询的层级
+   */
   protected int queryStack;
   private boolean closed;
 
@@ -110,10 +125,13 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public int update(MappedStatement ms, Object parameter) throws SQLException {
     ErrorContext.instance().resource(ms.getResource()).activity("executing an update").object(ms.getId());
+    // <1> 已经关闭，则抛出 ExecutorException 异常
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // <2> 清空本地缓存
     clearLocalCache();
+    //执行写操作。这是个抽象方法，由子类实现
     return doUpdate(ms, parameter);
   }
 
@@ -131,8 +149,11 @@ public abstract class BaseExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    // <1> 获得 BoundSql 对象
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // <2> 创建 CacheKey 对象
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+    // <3> 查询
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
 
@@ -143,15 +164,19 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // <2> 清空本地缓存，如果 queryStack 为零，并且要求清空本地缓存。
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
+      // <4.1> 从一级缓存中，获取查询结果
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+      // <4.2> 获取到，则进行处理
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
+        // <4.3> 获得不到，则从数据库中查询
       } else {
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
@@ -159,11 +184,13 @@ public abstract class BaseExecutor implements Executor {
       queryStack--;
     }
     if (queryStack == 0) {
+      // <6.1> 执行延迟加载
       for (DeferredLoad deferredLoad : deferredLoads) {
         deferredLoad.load();
       }
       // issue #601
       deferredLoads.clear();
+      // <7> 如果缓存级别是 LocalCacheScope.STATEMENT ，则进行清理
       if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
         // issue #482
         clearLocalCache();
@@ -175,6 +202,7 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // 执行查询
     return doQueryCursor(ms, parameter, rowBounds, boundSql);
   }
 
@@ -259,6 +287,9 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 清理一级（本地）缓存
+   */
   @Override
   public void clearLocalCache() {
     if (!closed) {
@@ -319,13 +350,18 @@ public abstract class BaseExecutor implements Executor {
 
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    // <1> 在缓存中，添加占位对象。此处的占位符，和延迟加载有关，可见 `DeferredLoad#canLoad()` 方法
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
+      // <2> 执行读操作
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+      // <3> 从缓存中，移除占位对象
       localCache.removeObject(key);
     }
+    // <4> 添加到缓存中
     localCache.putObject(key, list);
+    // <5> 暂时忽略，存储过程相关
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);
     }

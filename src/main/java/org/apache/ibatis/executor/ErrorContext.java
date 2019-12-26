@@ -23,6 +23,9 @@ public class ErrorContext {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator","\n");
   private static final ThreadLocal<ErrorContext> LOCAL = new ThreadLocal<>();
 
+  /**
+   * 错误信息跟踪本地方法
+   */
   private ErrorContext stored;
   private String resource;
   private String activity;
